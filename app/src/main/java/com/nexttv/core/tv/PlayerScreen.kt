@@ -137,6 +137,7 @@ import kotlin.math.roundToInt
  fun dismissOverlays(){cancelPendingDigits();browserController.move=null;browserController.pending=0;dialog="";side=false;bars=false;actionsVisible=false;digits="";notice="";actionFocused=false;exitGate.reset();runCatching{root.requestFocus()}}
  fun back(){
   if(dialog.isNotBlank()||side||bars||digits.isNotBlank())dismissOverlays()
+  else if(engine.error.isNotBlank()&&app.prefs.startLive&&onHome!=null)onHome(engine.current)
   else if(exitGate.press(android.os.SystemClock.elapsedRealtime()))onClose(engine.current)
   else{exitNoticeEpoch++;notice="再按一次退出播放"}
  }
