@@ -29,6 +29,29 @@
 
 未配置签名时，Debug 使用调试证书，Release 输出未签名 APK。正式签名可在项目根目录创建 `.signing/signing.properties`（`storeFile`、`storePassword`、`keyAlias`、`keyPassword`，PKCS#12）。
 
+## 签名
+
+Release / 可选 Debug 正式签名由本地文件配置（**不要提交密钥库与密码**）：
+
+1. 生成 PKCS#12 密钥库（示例）：
+
+```sh
+mkdir -p .signing
+keytool -genkeypair -keystore .signing/nexttv-release.p12 -storetype PKCS12 \
+  -alias nexttv -keyalg RSA -keysize 2048 -validity 10000
+```
+
+2. 创建 `.signing/signing.properties`（可参考根目录 `signing.properties.example`）：
+
+```properties
+storeFile=.signing/nexttv-release.p12
+storePassword=……
+keyAlias=nexttv
+keyPassword=……
+```
+
+配置生效后，`assembleRelease` 将使用该证书签名。`.signing/`、`*.p12`、`*.jks` 已在 `.gitignore` 中忽略。
+
 ## 测试
 
 - `app/src/test`：JVM 单元测试  
