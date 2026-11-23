@@ -23,7 +23,7 @@ public class P1SettingsLayoutInstrumentation extends com.nexttv.support.NextTvIn
  private void sameBounds(String label,android.graphics.Rect before)throws Exception{android.graphics.Rect after=bounds(label);if(Math.abs(after.width()-before.width())>1||Math.abs(after.height()-before.height())>1||Math.abs(after.left-before.left)>1||Math.abs(after.top-before.top)>1)throw new IllegalStateException("Focus scaled/moved "+label+" "+before+" → "+after);}
 
  private boolean hasDesc(String t,AccessibilityNodeInfo n){if(n==null)return false;if(t.contentEquals(n.getContentDescription()==null?"":n.getContentDescription()))return true;for(int i=0;i<n.getChildCount();i++)if(hasDesc(t,n.getChild(i)))return true;return false;}
- private void noFavoriteActions(){if(tree().contains("管理播放源")||tree().contains("添加订阅")||hasDesc("刷新订阅",getUiAutomation().getRootInActiveWindow()))throw new IllegalStateException("Source actions remain in Favorites");}
+ private void noFavoriteActions(){if(tree().contains("管理播放源")||tree().contains("添加订阅")||hasDesc("重新拉取",getUiAutomation().getRootInActiveWindow()))throw new IllegalStateException("Source actions remain in Favorites");}
  @Override public void onStart(){try{
  prefs=getTargetContext().getSharedPreferences("nexttv",0);saved=prefs.getAll();prefs.edit().putBoolean("start_live",false).putBoolean("auto_update",false).putBoolean("auto_update_epg",false).putString("manual_epg_url","https://example.invalid/"+new String(new char[250]).replace('\0','a')+".xml").commit();launch();focus("设置");key(KeyEvent.KEYCODE_DPAD_DOWN);text("节目单地址");
  AccessibilityNodeInfo label=find("节目单地址",false,getUiAutomation().getRootInActiveWindow());android.graphics.Rect r=new android.graphics.Rect();label.getBoundsInScreen(r);

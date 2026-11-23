@@ -429,8 +429,27 @@ import com.nexttv.observeGridDraws
        }
       }
       if(cacheReady&&all.isEmpty())item(span={GridItemSpan(columns)}){
-       Column(Modifier.fillMaxWidth().padding(36.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(16.dp)){
-        AppText(if(tab==1)if(app.prefs.favorites.isEmpty())"还没有收藏频道"else"收藏的频道暂不可用，请更新订阅"else if(noSources)"尚未添加订阅"else if(addingSubscription||app.updatingAll)"正在更新订阅…"else if(app.channels.sources.none{it.enabled})"所有订阅均已停用"else if(app.channels.hasLoadedChannels)"当前分组下没有频道"else"订阅暂无可用频道，请重试",textAlign=androidx.compose.ui.text.style.TextAlign.Center,color=NextTvStyle.Muted)
+       Column(Modifier.fillMaxWidth().padding(horizontal=36.dp,vertical=48.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(14.dp)){
+        AppText(
+         when {
+          tab==1 && app.prefs.favorites.isEmpty() -> "还没有收藏频道"
+          tab==1 -> "收藏的频道暂不可用，请更新订阅"
+          noSources -> "添加订阅后开始使用"
+          addingSubscription || app.updatingAll -> "正在更新订阅…"
+          app.channels.sources.none{it.enabled} -> "所有订阅均已停用"
+          app.channels.hasLoadedChannels -> "当前分组下没有频道"
+          else -> "订阅暂无可用频道，请重试"
+         },
+         textAlign=androidx.compose.ui.text.style.TextAlign.Center,
+         color=NextTvStyle.Text,
+         fontSize=InteractionStyle.subheading,
+         fontWeight=FontWeight.SemiBold
+        )
+        if(tab==0 && noSources){
+         AppText("粘贴 M3U 地址即可导入频道，无需经过多层设置。",textAlign=androidx.compose.ui.text.style.TextAlign.Center,color=NextTvStyle.Muted,fontSize=InteractionStyle.caption)
+        } else if(tab==1 && app.prefs.favorites.isEmpty()){
+         AppText("在频道上长按可添加收藏。",textAlign=androidx.compose.ui.text.style.TextAlign.Center,color=NextTvStyle.Muted,fontSize=InteractionStyle.caption)
+        }
         if(tab==0)TvButton(if(noSources)"添加订阅"else if(app.channels.sources.any{it.enabled}&&!app.channels.hasLoadedChannels)"重试"else"管理订阅",Modifier.focusRequester(emptyAction).focusEdges(down=true,left=true,right=true).focusProperties{up=if(noSources)nav[tab]else first;left=FocusRequester.Cancel;right=FocusRequester.Cancel;down=FocusRequester.Cancel},onFocus={contentFocus()},onClick={contentFocus();if(noSources)dialog="添加订阅"else if(app.channels.sources.any{it.enabled}&&!app.channels.hasLoadedChannels){retryFromEmpty=true;app.refreshSubscriptionsAndGuide()}else sources=true})
        }
       }

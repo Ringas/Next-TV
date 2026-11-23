@@ -78,7 +78,7 @@ private typealias SettingsEntry = SettingsRowData
   category=="订阅与节目单"->listOf(
    SettingsEntry("管理订阅","${app.channels.sources.size} 个订阅","添加、编辑、启停或删除频道订阅。",onSources),
    SettingsEntry("节目单来源",if(p.epgUrl.isBlank())"订阅自带"else"自定义","自定义节目单优先；未单独配置时使用订阅自带节目单。",{edit="节目单来源"}),
-   SettingsEntry("立即更新全部",if(app.updatingAll)"正在更新…"else"","更新频道订阅与节目单。失败时保留原有可用数据。",{app.refreshSubscriptionsAndGuide()},false),
+   SettingsEntry("立即更新全部",if(app.updatingAll)"正在更新…"else"","重新下载全部已启用订阅并更新节目单。管理订阅页的「重新拉取」只更新订阅列表，不含节目单。失败时保留原有数据。",{app.refreshSubscriptionsAndGuide()},false),
    SettingsEntry("自动更新","","设置订阅与节目单的自动更新方式。",{focusCategory();subpage="自动更新";scope.launch{navigation.scroll.scrollTo(0);withFrameNanos{};contentRequests["$category/启动时更新订阅"]?.requestFocus()}}))
   category=="播放"->listOf(
    SettingsEntry("启动后打开",if(p.startLive)"继续播放"else"频道页","选择「继续播放」时启动后直接进入播放；从播放返回即退出应用。",{edit="启动后打开"}),
