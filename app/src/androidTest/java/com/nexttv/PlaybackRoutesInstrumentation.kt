@@ -50,7 +50,7 @@ class PlaybackRoutesInstrumentation:Instrumentation(){
    val multi=real.copy(id="test-multi",url=bad("multi"),routes=emptyList(),group="测试分组")
    val good=real.copy(id="test-multi-good",url=route.url,sourceId=route.sourceId,routes=emptyList(),group="测试分组")
    val single=real.copy(id="test-single",name="单线路故障验证",tvgId="test-single",url=bad("single"),routes=emptyList(),group="另一分组")
-   val next=real.copy(id="test-next",name="下一频道验证",tvgId="test-next",url=route.url,sourceId=route.sourceId,routes=emptyList(),group="另一分组")
+   val next=real.copy(id="test-next",name="下一台验证",tvgId="test-next",url=route.url,sourceId=route.sourceId,routes=emptyList(),group="另一分组")
    write(listOf(multi,good,single,next));check(app.channels.channels.size==3)
    activity=startActivitySync(Intent(targetContext,TvActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));SystemClock.sleep(2200)
    click("设置");await("settings"){find("节目单地址")!=null};val initialSetting=Rect();find("节目单地址")!!.getBoundsInScreen(initialSetting)
@@ -91,7 +91,7 @@ class PlaybackRoutesInstrumentation:Instrumentation(){
    await("bounded all-channel failure"){engine.error.isNotBlank()};val stopped=engine.tuneSerial;SystemClock.sleep(1800);check(engine.tuneSerial==stopped)
    check(!tree().contains("画面比例"));pass("all channels exhausted stops recovery without looping or opening controls")
    write(listOf(multi,good,single,next));main{engine.tune(app.channels.channels.first{it.id==next.id})};await("restore real video",35000){engine.rendered}
-   key(K.KEYCODE_MENU);await("explicit controls before exit"){tree().contains("画面比例")};key(K.KEYCODE_BACK);key(K.KEYCODE_BACK);await("live confirmation"){tree().contains("再按一次退出直播")};val live=Rect();find("再按一次退出直播")!!.getBoundsInScreen(live);saveShot("live-exit")
+   key(K.KEYCODE_MENU);await("explicit controls before exit"){tree().contains("画面比例")};key(K.KEYCODE_BACK);key(K.KEYCODE_BACK);await("live confirmation"){tree().contains("再按一次退出播放")};val live=Rect();find("再按一次退出播放")!!.getBoundsInScreen(live);saveShot("live-exit")
    key(K.KEYCODE_BACK);await("home"){PlaybackSession.active==null};SystemClock.sleep(350);if(tree(focused()).trim()!="频道")key(K.KEYCODE_BACK);await("home top focus"){tree(focused()).trim()=="频道"};key(K.KEYCODE_BACK);await("home confirmation"){find("再按一次退出")!=null};val home=Rect();find("再按一次退出")!!.getBoundsInScreen(home)
    check(live.centerX()==home.centerX()&&live.centerY()==home.centerY()&&live.bottom==home.bottom){"Different exit anchors $live / $home"};pass("live and application exit notices share horizontal and vertical anchor")
    val content=results.joinToString("\n")+"\n${results.size} groups passed\n";File(targetContext.filesDir,"routes121-results.txt").writeText(content)

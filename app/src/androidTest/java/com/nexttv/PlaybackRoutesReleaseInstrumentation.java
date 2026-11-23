@@ -31,7 +31,7 @@ public class PlaybackRoutesReleaseInstrumentation extends com.nexttv.support.Nex
   key(KeyEvent.KEYCODE_DPAD_RIGHT);key(KeyEvent.KEYCODE_DPAD_RIGHT);text("日期");text("央视");if(tree().contains("频道分组\n"))throw new IllegalStateException("Obsolete heading");key(KeyEvent.KEYCODE_ESCAPE);await("EPG all close",()->!tree().contains("日期")&&!tree().contains("央视"));pass("default channel list and two-pane adjacent group/EPG navigation");
   key(KeyEvent.KEYCODE_ENTER);key(KeyEvent.KEYCODE_DPAD_LEFT);text("全部频道");key(KeyEvent.KEYCODE_BACK);await("group all close",()->!tree().contains("全部频道"));
   key(KeyEvent.KEYCODE_MENU);text("画面适配");key(KeyEvent.KEYCODE_BACK);await("menu close",()->!tree().contains("画面适配"));pass("Back/Esc closes every browser/menu layer to fullscreen playback");
-  key(KeyEvent.KEYCODE_BACK);text("再按一次退出直播");Rect live=new Rect();find("再按一次退出直播",false,getUiAutomation().getRootInActiveWindow()).getBoundsInScreen(live);
+  key(KeyEvent.KEYCODE_BACK);text("再按一次退出播放");Rect live=new Rect();find("再按一次退出播放",false,getUiAutomation().getRootInActiveWindow()).getBoundsInScreen(live);
   key(KeyEvent.KEYCODE_BACK);text("频道分类：");key(KeyEvent.KEYCODE_BACK);await("channel nav",()->focus().equals("频道"));key(KeyEvent.KEYCODE_BACK);text("再按一次退出");Rect home=new Rect();find("再按一次退出",false,getUiAutomation().getRootInActiveWindow()).getBoundsInScreen(home);
   if(live.centerX()!=home.centerX()||live.centerY()!=home.centerY()||live.bottom!=home.bottom)throw new IllegalStateException("Exit position mismatch "+live+" "+home);
   if(activity.isFinishing())throw new IllegalStateException("Exit gate leaked");key(KeyEvent.KEYCODE_BACK);await("app exit",()->activity.isFinishing());pass("aligned live/app exit notices and independent double-back gates");

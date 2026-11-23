@@ -78,19 +78,19 @@ private typealias SettingsEntry = SettingsRowData
   category=="订阅与节目单"->listOf(
    SettingsEntry("管理订阅","${app.channels.sources.size} 个订阅","添加、编辑、启停或删除频道订阅。",onSources),
    SettingsEntry("节目单来源",if(p.epgUrl.isBlank())"订阅自带"else"自定义","自定义节目单优先；未单独配置时使用订阅自带节目单。",{edit="节目单来源"}),
-   SettingsEntry("立即更新",if(app.updatingAll)"正在更新…"else"","更新频道订阅与节目单。失败时保留原有可用数据。",{app.refreshSubscriptionsAndGuide()},false),
+   SettingsEntry("立即更新全部",if(app.updatingAll)"正在更新…"else"","更新频道订阅与节目单。失败时保留原有可用数据。",{app.refreshSubscriptionsAndGuide()},false),
    SettingsEntry("自动更新","","设置订阅与节目单的自动更新方式。",{focusCategory();subpage="自动更新";scope.launch{navigation.scroll.scrollTo(0);withFrameNanos{};contentRequests["$category/启动时更新订阅"]?.requestFocus()}}))
   category=="播放"->listOf(
-   SettingsEntry("开始页面",if(p.startLive)"直播"else"首页","选择直播时直接播放；退出直播即退出应用。",{edit="开始页面"}),
-   SettingsEntry("频道预热",listOf("关闭","下一频道","上一频道","双向")[p.preloadMode],"提前准备相邻频道；双向同时预热上一频道和下一频道，会增加网络与内存占用。",{edit="频道预热"}),
+   SettingsEntry("启动后打开",if(p.startLive)"继续播放"else"频道页","选择「继续播放」时启动后直接进入播放；从播放返回即退出应用。",{edit="启动后打开"}),
+   SettingsEntry("换台预加载",listOf("关闭","下一台","上一台","上下台")[p.preloadMode],"提前准备相邻频道；「上下台」会同时预加载上一台和下一台，会增加网络与内存占用。",{edit="换台预加载"}),
    SettingsEntry("换台保留画面",if(p.keepLastFrame)"开启"else"关闭","切换频道或线路时保留上一画面，直到新画面出现。",{p.keepLastFrame=!p.keepLastFrame;changed()},false))
   category=="频道与外观"->listOf(
    SettingsEntry("频道布局",if(p.gridMode)"网格"else"列表","选择首页频道的展示方式。",{edit="频道布局"}),
    SettingsEntry("频道预览",if(p.channelPreviews)"开启"else"关闭","停稳后同时静音预览当前可见频道，操作时暂停；会增加网络与解码开销，关闭后停止全部预览。",{p.channelPreviews=!p.channelPreviews;changed()},false),
    SettingsEntry("界面主题",if(p.lightGlass)"浅色"else"深色","选择深色或浅色，应用于首页、设置和播放器浮层。",{edit="界面主题"}),
-   SettingsEntry("列表台标",if(p.showChannelLogos)"显示"else"隐藏","仅影响播放器频道列表；隐藏后自动收窄列表。",{p.showChannelLogos=!p.showChannelLogos;changed()},false),
-   SettingsEntry("动态效果",if(p.reduceMotion)"减少"else"标准","减少模式关闭胶囊回弹、焦点渐变、浮层过渡与换台渐变。鼠标滚轮、触控滑动及其惯性仍可使用。",{edit="动态效果"}))
-  category=="高级"->listOf(SettingsEntry("网络请求设置",if(p.defaultReferer.isBlank()&&p.defaultUserAgent==com.nexttv.core.data.Prefs.DEFAULT_UA)"默认"else"自定义","仅在订阅服务要求时设置 User-Agent 与 Referer。",{edit="网络请求设置"}))
+   SettingsEntry("播放器台标",if(p.showChannelLogos)"显示"else"隐藏","仅影响播放器频道列表；隐藏后自动收窄列表。",{p.showChannelLogos=!p.showChannelLogos;changed()},false),
+   SettingsEntry("动态效果",if(p.reduceMotion)"减弱"else"标准","减弱模式关闭胶囊回弹、焦点渐变、浮层过渡与换台渐变。鼠标滚轮、触控滑动及其惯性仍可使用。",{edit="动态效果"}))
+  category=="高级"->listOf(SettingsEntry("访问参数",if(p.defaultReferer.isBlank()&&p.defaultUserAgent==com.nexttv.core.data.Prefs.DEFAULT_UA)"默认"else"自定义","仅在订阅服务要求时设置 User-Agent 与 Referer。",{edit="访问参数"}))
   else -> listOf(
    SettingsEntry("应用版本", BuildConfig.VERSION_NAME),
    SettingsEntry("设备名称", deviceName),
@@ -146,7 +146,7 @@ private typealias SettingsEntry = SettingsRowData
     }
    }
    Column(Modifier.fillMaxWidth().height(helpHeight).padding(horizontal=16.dp,vertical=12.dp)){
-    AppText(if(category=="订阅与节目单"&&navigation.row.endsWith("/立即更新")&&app.updateStatus.isNotBlank())app.updateStatus else explanation,fontSize=InteractionStyle.caption,color=NextTvStyle.Muted,maxLines=2)
+    AppText(if(category=="订阅与节目单"&&navigation.row.endsWith("/立即更新全部")&&app.updateStatus.isNotBlank())app.updateStatus else explanation,fontSize=InteractionStyle.caption,color=NextTvStyle.Muted,maxLines=2)
    }
   }
  }
@@ -160,12 +160,12 @@ private typealias SettingsEntry = SettingsRowData
    if(p.epgUrl.isNotBlank())TvButton("恢复自动",Modifier.fillMaxWidth(),onClick={p.epgUrl="";changed();app.refreshEpg();dismissEdit()})
   }
   "节目单地址"->AddressInputDialog(p.epgUrl,epg=true,onDismiss={edit="节目单来源"},onConfirm={p.epgUrl=it;changed();app.refreshEpg();dismissEdit()})
-  "频道预热"->ChoiceDialog(edit,listOf("关闭","下一频道","上一频道","双向").mapIndexed{i,t->ChoiceOption("$i",t)},"${p.preloadMode}",{dismissEdit()}){p.preloadMode=it.toInt();PlaybackSession.active?.applyPreloadSetting();changed();dismissEdit()}
-  "开始页面"->ChoiceDialog(edit,listOf(ChoiceOption("home","首页"),ChoiceOption("live","直播")),if(p.startLive)"live"else"home",{dismissEdit()}){p.startLive=it=="live";changed();dismissEdit()}
+  "换台预加载"->ChoiceDialog(edit,listOf("关闭","下一台","上一台","上下台").mapIndexed{i,t->ChoiceOption("$i",t)},"${p.preloadMode}",{dismissEdit()}){p.preloadMode=it.toInt();PlaybackSession.active?.applyPreloadSetting();changed();dismissEdit()}
+  "启动后打开"->ChoiceDialog(edit,listOf(ChoiceOption("home","频道页"),ChoiceOption("live","继续播放")),if(p.startLive)"live"else"home",{dismissEdit()}){p.startLive=it=="live";changed();dismissEdit()}
   "频道布局"->ChoiceDialog(edit,listOf(ChoiceOption("grid","网格"),ChoiceOption("list","列表")),if(p.gridMode)"grid"else"list",{dismissEdit()}){p.gridMode=it=="grid";changed();dismissEdit()}
   "界面主题"->ChoiceDialog(edit,listOf(ChoiceOption("dark","深色"),ChoiceOption("light","浅色")),if(p.lightGlass)"light"else"dark",{dismissEdit()}){p.lightGlass=it=="light";changed();dismissEdit()}
-  "动态效果"->ChoiceDialog(edit,listOf(ChoiceOption("standard","标准"),ChoiceOption("reduced","减少")),if(p.reduceMotion)"reduced"else"standard",{dismissEdit()}){p.reduceMotion=it=="reduced";changed();dismissEdit()}
-  "网络请求设置"->NetworkRequestDialog({dismissEdit()}){ua,ref->p.defaultUserAgent=ua;p.defaultReferer=ref;changed();dismissEdit()}
+  "动态效果"->ChoiceDialog(edit,listOf(ChoiceOption("standard","标准"),ChoiceOption("reduced","减弱")),if(p.reduceMotion)"reduced"else"standard",{dismissEdit()}){p.reduceMotion=it=="reduced";changed();dismissEdit()}
+  "访问参数"->NetworkRequestDialog({dismissEdit()}){ua,ref->p.defaultUserAgent=ua;p.defaultReferer=ref;changed();dismissEdit()}
  }}
 }
 
@@ -175,7 +175,7 @@ private typealias SettingsEntry = SettingsRowData
  var ua by remember{mutableStateOf(p.defaultUserAgent)};var ref by remember{mutableStateOf(p.defaultReferer)}
  val first=remember{FocusRequester()};val second=remember{FocusRequester()};val save=remember{FocusRequester()}
  var editing by remember{mutableStateOf("")}
- TvDialog("网络请求设置",onDismiss,keyboardSession=if(editing.isBlank())0 else 1,onKeyboardDismiss={editing=""}){
+ TvDialog("访问参数",onDismiss,keyboardSession=if(editing.isBlank())0 else 1,onKeyboardDismiss={editing=""}){
   val keyboard=LocalSoftwareKeyboardController.current
   val inputView=LocalView.current;val inWindowModal=LocalInWindowModal.current
   LaunchedEffect(Unit){awaitModalFocusWindow(inputView,inWindowModal);first.requestFocus()}

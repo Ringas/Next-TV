@@ -69,10 +69,10 @@ class NavigationBackInstrumentation:Instrumentation(){
   }
   launch()
   test("live source and overlay Back does not arm exit"){
-   focus(first);key(KeyEvent.KEYCODE_ENTER);await("player session"){PlaybackSession.active!=null};key(KeyEvent.KEYCODE_1);await("real video",30000){var ready=false;runOnMainSync{ready=PlaybackSession.active?.rendered==true};ready};key(KeyEvent.KEYCODE_MENU);text("更多");key(KeyEvent.KEYCODE_ESCAPE);await("all overlays closed"){!tree().contains("频道列表")};check(!tree().contains("再按一次退出直播"));check(PlaybackSession.active!=null)
+   focus(first);key(KeyEvent.KEYCODE_ENTER);await("player session"){PlaybackSession.active!=null};key(KeyEvent.KEYCODE_1);await("real video",30000){var ready=false;runOnMainSync{ready=PlaybackSession.active?.rendered==true};ready};key(KeyEvent.KEYCODE_MENU);text("更多");key(KeyEvent.KEYCODE_ESCAPE);await("all overlays closed"){!tree().contains("频道列表")};check(!tree().contains("再按一次退出播放"));check(PlaybackSession.active!=null)
   }
   test("player double back expires and other input cancels confirmation"){
-   key(KeyEvent.KEYCODE_BACK);text("再按一次退出直播");key(KeyEvent.KEYCODE_DPAD_RIGHT);text("音量");key(KeyEvent.KEYCODE_BACK);text("再按一次退出直播");check(PlaybackSession.active!=null);SystemClock.sleep(2100);key(KeyEvent.KEYCODE_BACK);text("再按一次退出直播");check(PlaybackSession.active!=null);shot("live-confirm");key(KeyEvent.KEYCODE_BACK);text("全部频道");check(PlaybackSession.active==null&&!activity.isFinishing)
+   key(KeyEvent.KEYCODE_BACK);text("再按一次退出播放");key(KeyEvent.KEYCODE_DPAD_RIGHT);text("音量");key(KeyEvent.KEYCODE_BACK);text("再按一次退出播放");check(PlaybackSession.active!=null);SystemClock.sleep(2100);key(KeyEvent.KEYCODE_BACK);text("再按一次退出播放");check(PlaybackSession.active!=null);shot("live-confirm");key(KeyEvent.KEYCODE_BACK);text("全部频道");check(PlaybackSession.active==null&&!activity.isFinishing)
   }
   test("live exit cannot carry its confirmation into app exit"){
    key(KeyEvent.KEYCODE_BACK);await("home top focus"){focused()=="频道"};key(KeyEvent.KEYCODE_BACK);text("再按一次退出");check(!activity.isFinishing);shot("app-confirm");key(KeyEvent.KEYCODE_BACK);await("app exit after live exit"){activity.isFinishing}

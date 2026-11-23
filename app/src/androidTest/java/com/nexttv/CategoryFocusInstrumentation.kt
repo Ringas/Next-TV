@@ -45,7 +45,7 @@ class CategoryFocusInstrumentation:Instrumentation(){
   check(PlaybackSession.active!!.current.id==expected.id){"Focused card and selected channel differ"}
   key(KeyEvent.KEYCODE_MENU);await("player controls mounted"){tree().contains("选台")}
   key(KeyEvent.KEYCODE_BACK);key(KeyEvent.KEYCODE_BACK)
-  await("live exit confirmation"){tree().contains("再按一次退出直播")}
+  await("live exit confirmation"){tree().contains("再按一次退出播放")}
   key(KeyEvent.KEYCODE_BACK)
   await("home restored"){PlaybackSession.active==null&&tree().contains("频道分类：")}
  }

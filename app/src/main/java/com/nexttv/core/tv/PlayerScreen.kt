@@ -138,15 +138,15 @@ import kotlin.math.roundToInt
  fun back(){
   if(dialog.isNotBlank()||side||bars||digits.isNotBlank())dismissOverlays()
   else if(exitGate.press(android.os.SystemClock.elapsedRealtime()))onClose(engine.current)
-  else{exitNoticeEpoch++;notice="再按一次退出直播"}
+  else{exitNoticeEpoch++;notice="再按一次退出播放"}
  }
  var foregroundUi by remember{mutableStateOf(true)};var remainingDeadline by remember{mutableLongStateOf(0)}
  val lifecycle=LocalLifecycleOwner.current.lifecycle
  DisposableEffect(lifecycle){val observer=LifecycleEventObserver{_,event->when(event){Lifecycle.Event.ON_PAUSE->{cancelPendingDigits();remainingDeadline=(deadline-System.currentTimeMillis()).coerceAtLeast(0);foregroundUi=false;engine.setForeground(false)};Lifecycle.Event.ON_RESUME->{if(!foregroundUi)deadline=System.currentTimeMillis()+remainingDeadline;foregroundUi=true;engine.setForeground(true)};else->Unit}};lifecycle.addObserver(observer);onDispose{lifecycle.removeObserver(observer);engine.release()}}
  LaunchedEffect(Unit){root.requestFocus();while(true){if(!foregroundUi){delay(500);continue};tick=System.currentTimeMillis();if(bars&&tick>=deadline&&dialog.isBlank())hideBars();delay(250)}}
- LaunchedEffect(engine.tuneSerial){cancelPendingDigits();if(!side&&!actionsVisible&&dialog.isBlank()&&notice!="再按一次退出直播"){bars=true;actionsVisible=false;deadline=System.currentTimeMillis()+InteractionStyle.infoMillis}}
+ LaunchedEffect(engine.tuneSerial){cancelPendingDigits();if(!side&&!actionsVisible&&dialog.isBlank()&&notice!="再按一次退出播放"){bars=true;actionsVisible=false;deadline=System.currentTimeMillis()+InteractionStyle.infoMillis}}
  LaunchedEffect(requestActions){if(requestActions>0){delay(60);runCatching{actionFocus.requestFocus()}}}
- LaunchedEffect(notice,exitNoticeEpoch){if(notice.isNotBlank()){delay(if(notice=="再按一次退出直播")2000 else 1800);notice=""}}
+ LaunchedEffect(notice,exitNoticeEpoch){if(notice.isNotBlank()){delay(if(notice=="再按一次退出播放")2000 else 1800);notice=""}}
  LaunchedEffect(digitGeneration,foregroundUi,side,actionsVisible,dialog){
   if(foregroundUi&&!side&&!actionsVisible&&dialog.isBlank()&&digits.isNotBlank()){
    val pending=digits;val generation=digitGeneration
@@ -157,7 +157,7 @@ import kotlin.math.roundToInt
   }
  }
  val latestPlayerBack by rememberUpdatedState<()->Unit>({back()})
- DisposableEffect(context){val activity=context as TvActivity;activity.playerBack={latestPlayerBack()};activity.playerInteraction={if(actionsVisible)deadline=System.currentTimeMillis()+InteractionStyle.actionsMillis;exitGate.reset();if(notice=="再按一次退出直播")notice=""};onDispose{activity.playerBack=null;activity.playerInteraction=null}}
+ DisposableEffect(context){val activity=context as TvActivity;activity.playerBack={latestPlayerBack()};activity.playerInteraction={if(actionsVisible)deadline=System.currentTimeMillis()+InteractionStyle.actionsMillis;exitGate.reset();if(notice=="再按一次退出播放")notice=""};onDispose{activity.playerBack=null;activity.playerInteraction=null}}
  KeepScreenOnWhilePlayback(engine.player,foregroundUi)
  val gestureHost = context as TvActivity
  SideEffect {
@@ -219,7 +219,7 @@ import kotlin.math.roundToInt
   if(digits.isNotBlank())AppText(
    digits,modifier=Modifier.align(Alignment.Center),color=Color.White,fontSize=46.sp,
    fontWeight=FontWeight.Bold,shadow=androidx.compose.ui.graphics.Shadow(Color.Black,androidx.compose.ui.geometry.Offset(0f,1f),4f))
-  if(notice=="再按一次退出直播")ExitNotice(notice)
+  if(notice=="再按一次退出播放")ExitNotice(notice)
   else if(notice.isNotBlank())AppText(notice,textAlign=androidx.compose.ui.text.style.TextAlign.Center,color=NextTvStyle.Text,fontSize=InteractionStyle.body,modifier=Modifier.align(Alignment.BottomCenter).padding(bottom=if(bars)with(LocalDensity.current){bottomPanelHeight.toDp()}+12.dp else LocalConfiguration.current.screenHeightDp.dp*.12f).glassReadingPanel(RoundedCornerShape(InteractionStyle.radius)).padding(horizontal=18.dp,vertical=12.dp))
  }
  when(dialog){
