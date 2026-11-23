@@ -5,7 +5,7 @@
 | 项目 | 说明 |
 |------|------|
 | 应用 ID | `com.nexttv` |
-| 版本 | 1.3.51（versionCode 98） |
+| 版本 | 1.4.0（versionCode 100） |
 | SDK | min 23 / target & compile 35 |
 | 技术 | Kotlin、Jetpack Compose for TV、AndroidX Media3 |
 

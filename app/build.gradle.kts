@@ -17,7 +17,7 @@ android {
  }
  namespace = "com.nexttv"
  compileSdk = 35
- defaultConfig { testInstrumentationRunner = providers.gradleProperty("perfRunner").orNull ?: "com.nexttv.AuditFixInstrumentation"; applicationId = "com.nexttv"; minSdk = 23; targetSdk = 35; versionCode = 98; versionName = "1.3.51" }
+ defaultConfig { testInstrumentationRunner = providers.gradleProperty("perfRunner").orNull ?: "com.nexttv.AuditFixInstrumentation"; applicationId = "com.nexttv"; minSdk = 23; targetSdk = 35; versionCode = 100; versionName = "1.4.0" }
  compileOptions { isCoreLibraryDesugaringEnabled = true; sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget = "17" }
  buildFeatures { compose = true; buildConfig = true }
