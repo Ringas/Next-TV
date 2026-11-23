@@ -39,13 +39,7 @@ import kotlinx.coroutines.flow.first
 import com.nexttv.observeGridDraws
 
 @Composable fun ChannelArtwork(channel:Channel,modifier:Modifier=Modifier){
- val context=LocalContext.current
- var logo by remember(channel.logo){mutableStateOf<Bitmap?>(LogoLoader.cached(channel.logo))}
- DisposableEffect(channel.logo){val cancel=if(logo==null)LogoLoader.fetch(context,channel.logo){logo=it}else ({});onDispose{cancel()}}
- Box(modifier,contentAlignment=Alignment.Center){
-  if(logo!=null)Image(logo!!.asImageBitmap(),null,Modifier.fillMaxSize().padding(10.dp),contentScale=ContentScale.Fit)
-  else AppText(Ui.shortName(channel.name),fontSize=34.sp,fontWeight=FontWeight.Bold,color=Color(0x4DFFFFFF))
- }
+ ChannelLogo(channel, modifier)
 }
 @Composable fun HomeScreen(onExit:()->Unit,onLaunchReady:(()->Unit)?=null){
  val homeCompositionCount=remember{intArrayOf(0)}
@@ -57,31 +51,37 @@ import com.nexttv.observeGridDraws
  val app=App.get();val scope=rememberCoroutineScope();val context=LocalContext.current
  val cacheReady=app.cacheReady
  val digitCapacity=remember(cacheReady,app.channels.revision){channelDigitCapacity(if(cacheReady)app.channels.channels.maxOfOrNull{it.number}?:0 else 0)}
- var revision by remember{mutableIntStateOf(0)};var tab by remember{mutableIntStateOf(0)}
- var sources by remember{mutableStateOf(false)};var group by remember{mutableStateOf("")}
- var playing by remember{mutableStateOf<Channel?>(initialPlaybackChannel(app.channels.channels,app.prefs.startLive,app.prefs.lastChannelId))};var status by remember{mutableStateOf("")}
- var channelDigits by remember{mutableStateOf("")}
+ val ui = remember {
+  HomeUiState(initialPlaybackChannel(app.channels.channels, app.prefs.startLive, app.prefs.lastChannelId))
+ }
+ var revision by ui.revision
+ var tab by ui.tab
+ var sources by ui.sources
+ var group by ui.group
+ var playing by ui.playing
+ var status by ui.status
+ var channelDigits by ui.channelDigits
  val digitLifecycle=LocalLifecycleOwner.current.lifecycle
- var firstCardFocusPending by remember{mutableStateOf(false)}
- var addingSubscription by remember{mutableStateOf(false)}
+ var firstCardFocusPending by ui.firstCardFocusPending
+ var addingSubscription by ui.addingSubscription
  val emptyAction=remember{FocusRequester()}
  val inlineBounds=remember{arrayOfNulls<androidx.compose.ui.geometry.Rect>(1)}
  val gridInput=remember{GridInputBookkeeping()}
- var cardInput by remember{mutableStateOf(false)}
- var menuChannel by remember{mutableStateOf<Channel?>(null)}
- var dialog by remember{mutableStateOf("")};var firstFrameReady by remember{mutableStateOf(false)}
-
+ var cardInput by ui.cardInput
+ var menuChannel by ui.menuChannel
+ var dialog by ui.dialog
+ var firstFrameReady by ui.firstFrameReady
  val nav=remember{List(3){FocusRequester()}};val first=remember{FocusRequester()}
- var navFocused by remember{mutableStateOf(true)}
- var homeNoticeEpoch by remember{mutableIntStateOf(0)}
- var restoringHome by remember{mutableStateOf(true)}
- var homeNotice by remember{mutableStateOf("")}
+ var navFocused by ui.navFocused
+ var homeNoticeEpoch by ui.homeNoticeEpoch
+ var restoringHome by ui.restoringHome
+ var homeNotice by ui.homeNotice
  LaunchedEffect(channelDigits,playing,sources,dialog,tab){if(playing!=null||sources||dialog.isNotBlank()||tab !in 0..1){channelDigits=""}else if(channelDigits.isNotBlank()){val pending=channelDigits;val pendingRevision=app.channels.revision;delay(CHANNEL_DIGIT_WAIT_MS);if(channelDigits!=pending)return@LaunchedEffect;if(!digitLifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)||playing!=null||sources||dialog.isNotBlank()||tab !in 0..1||app.channels.revision!=pendingRevision){channelDigits="";return@LaunchedEffect};val target=app.channels.channels.firstOrNull{it.number==channelDigits.toIntOrNull()};channelDigits="";if(target!=null)playing=target else{homeNotice="没有该频道";homeNoticeEpoch++}}}
  val exitGate=remember{ExitConfirmation()}
  val settingsNavigation=remember{SettingsNavigation()}
- var settingsRestore by remember{mutableIntStateOf(0)}
- var returningToTop by remember{mutableStateOf(false)}
- var returnGeneration by remember{mutableIntStateOf(0)}
+ var settingsRestore by ui.settingsRestore
+ var returningToTop by ui.returningToTop
+ var returnGeneration by ui.returnGeneration
  var returnJob by remember{mutableStateOf<Job?>(null)}
  val returnAnchor=remember{FocusRequester()}
  // Keep a bounded recent viewport behind the cursor; returning/reversing reuses

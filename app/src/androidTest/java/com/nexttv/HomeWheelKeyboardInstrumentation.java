@@ -10,17 +10,11 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import org.json.JSONObject;
 
 /** Real mouse wheel → physical arrow-key handoff, without assigning focus to hide a lost-focus bug. */
-public class HomeWheelKeyboardInstrumentation extends Instrumentation {
+public class HomeWheelKeyboardInstrumentation extends com.nexttv.support.NextTvInstrumentation {
  private Activity activity;private android.content.SharedPreferences prefs;private java.util.Map<String,?> saved;private int passed;
  @Override public void onCreate(Bundle b){super.onCreate(b);start();}
  private AccessibilityNodeInfo root(){AccessibilityNodeInfo n=getUiAutomation().getRootInActiveWindow();if(n!=null)n.refresh();return n;}
- private String tree(AccessibilityNodeInfo n){if(n==null)return "";n.refresh();StringBuilder s=new StringBuilder();if(n.getText()!=null)s.append(n.getText()).append('\n');for(int i=0;i<n.getChildCount();i++)s.append(tree(n.getChild(i)));return s.toString();}
- private AccessibilityNodeInfo focused(){return FreshAccessibilityNodes.focused(root());}
- private boolean card(){AccessibilityNodeInfo n=focused();if(n==null)return false;Rect b=new Rect();n.getBoundsInScreen(b);return n.isClickable()&&b.height()>=70&&java.util.regex.Pattern.compile("(?m)^\\d{3,}$").matcher(tree(n)).find();}
- private String focus(){return tree(focused()).trim();}
- private void await(String label,java.util.concurrent.Callable<Boolean> test)throws Exception{long end=SystemClock.uptimeMillis()+10000;while(SystemClock.uptimeMillis()<end){if(test.call())return;SystemClock.sleep(60);}throw new IllegalStateException(label+" focus="+focus()+" grid="+grid()+" UI="+tree(root()));}
- private JSONObject grid()throws Exception{java.io.StringWriter s=new java.io.StringWriter();runOnMainSync(()->activity.dump("",null,new java.io.PrintWriter(s),null));java.util.regex.Matcher m=java.util.regex.Pattern.compile("NextTVGrid (\\{[^\\n]+\\})").matcher(s.toString());if(!m.find())throw new IllegalStateException("Missing grid diagnostics");return new JSONObject(m.group(1));}
- private void key(int code){sendKeyDownUpSync(code);waitForIdleSync();SystemClock.sleep(120);}
+
  private void wheel(float amount,long settle){MotionEvent.PointerProperties p=new MotionEvent.PointerProperties();p.id=0;p.toolType=MotionEvent.TOOL_TYPE_MOUSE;MotionEvent.PointerCoords c=new MotionEvent.PointerCoords();c.x=500;c.y=350;c.setAxisValue(MotionEvent.AXIS_VSCROLL,amount);long t=SystemClock.uptimeMillis();MotionEvent e=MotionEvent.obtain(t,t,MotionEvent.ACTION_SCROLL,1,new MotionEvent.PointerProperties[]{p},new MotionEvent.PointerCoords[]{c},0,0,1,1,0,0,InputDevice.SOURCE_MOUSE,0);getUiAutomation().injectInputEvent(e,true);e.recycle();if(settle>0)SystemClock.sleep(settle);}
  private void launch()throws Exception{activity=startActivitySync(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setClassName("com.nexttv","com.nexttv.core.tv.TvActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));await("initial Channels menu",()->focus().equals("频道"));SystemClock.sleep(800);}
  private void visible()throws Exception{await("focused card fully visible",()->{JSONObject g=grid();return g.getInt("itemTop")>=g.getInt("viewportStart")&&g.getInt("itemBottom")<=g.getInt("viewportEnd");});}

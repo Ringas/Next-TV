@@ -26,7 +26,7 @@ import com.nexttv.core.App
 import kotlinx.coroutines.*
 
 private val settingsCategories=listOf("订阅与节目单","播放","频道与外观","高级","关于")
-private data class SettingsEntry(val title:String,val value:String="",val explanation:String="",val action:(()->Unit)?=null,val disclosure:Boolean=true)
+private typealias SettingsEntry = SettingsRowData
 
 /** Category navigation and content share the application's native input/focus/material policies. */
 @Composable fun SettingsScreen(navigation:SettingsNavigation,restoreTick:Int,navFocused:Boolean,onContentFocus:()->Unit,onBackToNav:()->Unit,onTopBack:()->Unit,onSources:()->Unit,onChanged:()->Unit){
@@ -138,11 +138,9 @@ private data class SettingsEntry(val title:String,val value:String="",val explan
      val key="$category/${entry.title}";val request=remember(key){FocusRequester()}
      DisposableEffect(key,request){if(entry.action!=null){contentRequests[key]=request;navigation.rows[key]=request};onDispose{contentRequests.remove(key);navigation.rows.remove(key);navigation.coordinates.remove(key)}}
      val modifier=Modifier.fillMaxWidth().onGloballyPositioned{if(entry.action!=null)navigation.coordinates[key]=it}.then(if(entry.action!=null)Modifier.focusRequester(request).focusEdges(up=index==entries.indexOfFirst{it.action!=null},down=index==entries.indexOfLast{it.action!=null},right=true).focusProperties{left=FocusRequester.Cancel;right=FocusRequester.Cancel;if(index==entries.indexOfFirst{it.action!=null})up=FocusRequester.Cancel;if(index==entries.indexOfLast{it.action!=null})down=FocusRequester.Cancel}.onPreviewKeyEvent{e->if(e.nativeKeyEvent.action==android.view.KeyEvent.ACTION_DOWN&&TvInput.action(e.nativeKeyEvent.keyCode)==InputAction.LEFT){if(subpage.isNotBlank())back()else focusCategory();true}else false}else Modifier)
-     val body:@Composable BoxScope.()->Unit={Row(Modifier.fillMaxWidth().heightIn(min=bodyHeight).padding(horizontal=14.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){
-      AppText(entry.title,Modifier.weight(1f),color=NextTvStyle.Text,fontSize=InteractionStyle.body,maxLines=2)
-      if(entry.value.isNotBlank())AppText(entry.value,if(category=="关于")Modifier.weight(1.5f) else Modifier.widthIn(max=if(narrow)94.dp else 144.dp),color=NextTvStyle.Muted,fontSize=InteractionStyle.caption,textAlign=androidx.compose.ui.text.style.TextAlign.End,maxLines=if(category=="关于")Int.MAX_VALUE else 2)
-      if(entry.action!=null&&entry.disclosure)AppText("›",color=NextTvStyle.Disabled,fontSize=18.sp)
-     }}
+     val body:@Composable BoxScope.()->Unit={
+      SettingsRowContent(entry,category,narrow,bodyHeight,Modifier.fillMaxWidth())
+     }
      if(entry.action!=null)TvSurface(modifier,kind="setting",onFocus={pendingRestore?.cancel();inContent=true;navigation.focused(category,key);explanation=entry.explanation},onClick={pendingRestore?.cancel();inContent=true;navigation.row=key;entry.action.invoke()},content=body)else Box(modifier,content=body)
      if(index<entries.lastIndex)Box(Modifier.padding(horizontal=14.dp).fillMaxWidth().height(.5.dp).background(NextTvStyle.Divider,RoundedCornerShape(1.dp)))
     }

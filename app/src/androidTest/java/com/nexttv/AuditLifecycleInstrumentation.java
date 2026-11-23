@@ -1,21 +1,11 @@
 package com.nexttv;
 import android.app.*;import android.content.*;import android.os.*;import android.view.KeyEvent;import android.view.accessibility.AccessibilityNodeInfo;
-public class AuditLifecycleInstrumentation extends Instrumentation {
- private boolean singleColumn;private Activity activity;private int passed;private final StringBuilder results=new StringBuilder();
+public class AuditLifecycleInstrumentation extends com.nexttv.support.NextTvInstrumentation {
+
  @Override public void onCreate(Bundle b){super.onCreate(b);singleColumn=b!=null&&"true".equals(b.getString("singleColumn"));start();}
  private AccessibilityNodeInfo root(){AccessibilityNodeInfo n=getUiAutomation().getRootInActiveWindow();if(n!=null&&"com.nexttv".contentEquals(n.getPackageName()==null?"":n.getPackageName()))return n;for(android.view.accessibility.AccessibilityWindowInfo w:getUiAutomation().getWindows()){AccessibilityNodeInfo r=w.getRoot();if(w.isFocused()&&r!=null&&"com.nexttv".contentEquals(r.getPackageName()==null?"":r.getPackageName()))return r;}return null;}
  private void waitAppWindow(){long end=SystemClock.uptimeMillis()+15000;int stable=0;while(SystemClock.uptimeMillis()<end){AccessibilityNodeInfo n=getUiAutomation().getRootInActiveWindow();final boolean[] hasFocus={false};runOnMainSync(()->hasFocus[0]=activity.hasWindowFocus());if(hasFocus[0]&&n!=null&&"com.nexttv".contentEquals(n.getPackageName()==null?"":n.getPackageName())){if(++stable>=2)return;}else stable=0;SystemClock.sleep(80);}throw new IllegalStateException("Application window did not regain input focus");}
- private String tree(AccessibilityNodeInfo n){if(n==null)return "";StringBuilder b=new StringBuilder();if(n.getText()!=null)b.append(n.getText());b.append('\n');for(int i=0;i<n.getChildCount();i++)b.append(tree(n.getChild(i)));return b.toString();}
- private String tree(){return tree(root());}
- private AccessibilityNodeInfo find(String text,boolean prefix,AccessibilityNodeInfo n){if(n==null)return null;String value=n.getText()==null?"":n.getText().toString();if(prefix?value.startsWith(text):value.equals(text))return n;for(int i=0;i<n.getChildCount();i++){AccessibilityNodeInfo r=find(text,prefix,n.getChild(i));if(r!=null)return r;}return null;}
- private AccessibilityNodeInfo focused(AccessibilityNodeInfo n){if(n==null)return null;n.refresh();if(n.isFocused())return n;for(int i=0;i<n.getChildCount();i++){AccessibilityNodeInfo r=focused(n.getChild(i));if(r!=null)return r;}return null;}
- private String focus(){return tree(focused(root())).trim();}
- private void await(String label,java.util.concurrent.Callable<Boolean> condition)throws Exception{long end=SystemClock.uptimeMillis()+12000;while(SystemClock.uptimeMillis()<end){if(condition.call())return;SystemClock.sleep(80);}throw new IllegalStateException(label+" focus="+focus()+" UI="+tree());}
- private void text(String t)throws Exception{await(t,()->tree().contains(t));}
- private void click(String t,boolean prefix)throws Exception{await(t,()->find(t,prefix,root())!=null);AccessibilityNodeInfo n=find(t,prefix,root());while(!n.isClickable()){n=n.getParent();if(n==null)throw new IllegalStateException("No clickable "+t);}n.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.getId());SystemClock.sleep(100);if(!n.performAction(AccessibilityNodeInfo.ACTION_CLICK))throw new IllegalStateException("Click "+t);waitForIdleSync();SystemClock.sleep(100);}
- private void click(String t)throws Exception{click(t,false);}
- private void focus(String t)throws Exception{await(t,()->find(t,false,root())!=null);AccessibilityNodeInfo n=find(t,false,root());while(!n.isFocusable()){n=n.getParent();if(n==null)throw new IllegalStateException("No focusable "+t);}if(!n.performAction(AccessibilityNodeInfo.ACTION_FOCUS))throw new IllegalStateException("Focus "+t);await("focused "+t,()->java.util.Arrays.asList(focus().split("\n")).contains(t));}
- private void key(int code){sendKeyDownUpSync(code);waitForIdleSync();SystemClock.sleep(120);}
+
  private void launch()throws Exception{activity=startActivitySync(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setClassName("com.nexttv","com.nexttv.core.tv.TvActivity").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));text("频道分类：");SystemClock.sleep(2300);}
  private void closeEditor()throws Exception{key(KeyEvent.KEYCODE_ESCAPE);SystemClock.sleep(400);if(tree().contains("保存"))key(KeyEvent.KEYCODE_ESCAPE);SystemClock.sleep(250);}
  private void pass(String name){passed++;results.append("PASS ").append(name).append('\n');Bundle b=new Bundle();b.putString("stream","PASS "+name+"\n");sendStatus(0,b);}

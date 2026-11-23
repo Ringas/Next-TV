@@ -25,14 +25,15 @@ class PlaybackSession(private val context:Context,initial:Channel,private val sc
  internal var surfaceHasFrame=false;private set
  private var requestedAutoplay=true
  private val decoderHistory=DecoderHistory(context)
- private val recoveryBudget=RecoveryBudget{android.os.SystemClock.elapsedRealtime()}
- private val videoFailedRoutes=mutableSetOf<Int>()
+ private val playbackRecovery=PlaybackRecovery()
+ private val recoveryBudget get()=playbackRecovery.budget
+ private val videoFailedRoutes get()=playbackRecovery.videoFailedRoutes
  private var manualDecoderMode by mutableStateOf("auto")
  private var manualDecoderMime:String?=null
  private var lastVideoFormat:Format?=null
  private var decoderPreferences=DecoderPreferences()
  private var decoderContext=""
- private val audioRecoveryAttempts=mutableSetOf<String>()
+ private val audioRecoveryAttempts get()=playbackRecovery.audioRecoveryAttempts
  private var activePlayer by mutableStateOf<ExoPlayer?>(null)
  val player:ExoPlayer get()=checkNotNull(activePlayer)
  var routeIndex by mutableIntStateOf(0);private set
@@ -86,10 +87,10 @@ class PlaybackSession(private val context:Context,initial:Channel,private val sc
  }
  private var direction=1;private var closed=false;private var recovering=false
  private var foreground=true;private var resumeMain=false;private var resumePosition=0L;private var pendingPosition:Long?=null
- private val recovery=RouteRecovery()
- private val replayRecovery=RouteRecovery()
+ private val recovery get()=playbackRecovery.liveRoutes
+ private val replayRecovery get()=playbackRecovery.replayRoutes
  private fun replayRoutes()=current.playbackRoutes.indices.filter{replay?.let{p->replayAddress(current.playbackRoutes[it],p,System.currentTimeMillis())!=null}==true}
- private val exhausted=mutableSetOf<String>()
+ private val exhausted get()=playbackRecovery.exhausted
  private fun decoderKey(channel:Channel=current,index:Int=routeIndex)=channel.id+":"+routeKey(channel,index)+":"+(replay?.start?:0)
  private fun makePlayer():ExoPlayer {
   val historyRoute=if(decoderContext.isBlank())null else routeKey(current,routeIndex)
